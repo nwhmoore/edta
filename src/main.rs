@@ -80,15 +80,20 @@ fn alignment(x: &String, y: &String) -> (String, String, usize) {
         let left: usize = mat[j+1][i];
         let diag: usize = mat[j][i];
 
-        if top < left && top < diag { //top best path -> gap align to row letter
+        if x[i..i+1] == y[j..j+1] { //letters align
+            z.push_str(&x[i..i+1]);
+            w.push_str(&y[j..j+1]);
+            i -= 1;
+            j -= 1;
+        } else if top < left && top <= diag { //top best path -> gap align to row letter
             z.push('-');
             w.push_str(&y[j..j+1]);
             j -= 1;
-        } else if left < top && left < diag { //left best path -> align gap to column letter
+        } else if left < top && left <= diag { //left best path -> align gap to column letter
             w.push('-');
             z.push_str(&x[i..i+1]);
             i -= 1;
-        } else { //diag best path -> direct letters align (match or swap)
+        } else { //diag best path ->  swap
             z.push_str(&x[i..i+1]);
             w.push_str(&y[j..j+1]);
             i -= 1;
