@@ -49,15 +49,15 @@ fn alignment(x: &String, y: &String) -> (String, String, usize) {
             let adj_cells: [usize; 3] = [top,left,diag];
 
             // find max score
-            let max_val: Option<&usize> = adj_cells.iter().max();
-            match max_val {
+            let min_val: Option<&usize> = adj_cells.iter().min();
+            match min_val {
                 Some(cell) => mat[j+1][i+1] = *cell, //assign cell score
                 None => ()
             }
         }
     }
 
-    let edit_distance: usize = mat[y.len()+1][x.len()+1];
+    let edit_distance: usize = mat[y.len()][x.len()];
     println!("{:?}",mat);
     //find aligment strings
     //start at bottom-right of matrix, find path to top left
@@ -67,8 +67,8 @@ fn alignment(x: &String, y: &String) -> (String, String, usize) {
 
     // CHOOSE PATHS
     // NEED WHILE TO DO (0,0) CELL
-    let mut i: usize = x.len();
-    let mut j: usize = y.len();
+    let mut i: usize = x.len()-1;
+    let mut j: usize = y.len()-1;
     while !(i == 0 && j == 0) {
         //current cell is [j+1][i+1]
         let top: usize = mat[j][i+1];
