@@ -11,45 +11,45 @@ fn main() {
     let y: &String = &data[1];
 
     // Needleman-Wunsch algorithm:
-    let (z,w,distance) = needleman_wunsch(x, y);
+    let (z,w,distance) = alignment(x, y);
     let ans: String = format!("{}\n{}\n{}",distance,z,w);
     println!("{}",ans);
     write("ans.txt",ans).expect("Should write to file");
 }
 
-fn needleman_wunsch(x: &String, y: &String) -> (String, String, i32) {
+fn alignment(x: &String, y: &String) -> (String, String, usize) {
     // construct matrix
-    let mut mat: Vec<Vec<i32>> = vec![vec![0i32;x.len()+1];y.len()+1];
+    let mut mat: Vec<Vec<usize>> = vec![vec![0usize;x.len()+1];y.len()+1];
 
     //preallocate first row
     for i in 0..x.len()+1 {
-        mat[0][i] = -(i as i32);
+        mat[0][i] = i;
     }
     //preallocate first column
     for j in 0..y.len()+1 {
-        mat[j][0] = -(j as i32);
+        mat[j][0] = j;
     }
 
     //iterate through matrix
     //current cell is i+1, j+1
     for j in 0..y.len() {
         for i in 0..x.len(){
-            let score:i32;
+            let cost:usize;
             // if it's a match
             if y[j..j+1] == x[i..i+1] {
-                score = 0;
+                cost = 0;
             } else {
-                score = -1;
+                cost = 1;
             }
 
             // score based on adjacent cells
-            let top: i32 = mat[j][i+1] + score;
-            let left: i32 = mat[j+1][i] + score;
-            let diag: i32 = mat[j][i] + score;
-            let adj_cells: [i32; 3] = [top,left,diag];
+            let top: usize = mat[j][i+1] + cost;
+            let left: usize = mat[j+1][i] + cost;
+            let diag: usize = mat[j][i] + cost;
+            let adj_cells: [usize; 3] = [top,left,diag];
 
             // find max score
-            let max_val: Option<&i32> = adj_cells.iter().max();
+            let max_val: Option<&usize> = adj_cells.iter().max();
             match max_val {
                 Some(cell) => mat[j+1][i+1] = *cell, //assign cell score
                 None => ()
@@ -57,27 +57,28 @@ fn needleman_wunsch(x: &String, y: &String) -> (String, String, i32) {
         }
     }
 
-    let edit_distance: i32 = -mat[y.len()][x.len()];
+    let edit_distance: usize = mat[y.len()+1][x.len()+1];
     println!("{:?}",mat);
     //find aligment strings
     //start at bottom-right of matrix, find path to top left
+    //need to store candidates
     let mut z: String = String::new();
     let mut w: String = String::new();
 
     // CHOOSE PATHS
     // NEED WHILE TO DO (0,0) CELL
-    let mut i: usize = x.len()-1;
-    let mut j: usize = y.len()-1;
+    let mut i: usize = x.len();
+    let mut j: usize = y.len();
     while !(i == 0 && j == 0) {
         //current cell is [j+1][i+1]
-        let top: i32 = mat[j][i+1];
-        let left: i32 = mat[j+1][i];
-        let diag: i32 = mat[j][i];
+        let top: usize = mat[j][i+1];
+        let left: usize = mat[j+1][i];
+        let diag: usize = mat[j][i];
 
-        if top > left && top > diag { //top
+        if top > left && top > diag { //top best path
             j -= 1;
             w.push('-');
-        } else if left > top && left > diag { //left
+        } else if left > top && left > diag { //left best path
             i -= 1;
             z.push('-');
         } else { //diag
@@ -86,7 +87,21 @@ fn needleman_wunsch(x: &String, y: &String) -> (String, String, i32) {
             i -= 1;
             j -= 1;
         }
+    }
+    //push (0,0) cell
+    z.push_str(&x[0..1]);
+    w.push_str(&y[0..1]);
+    z = z.chars().rev().collect();
+    w = w.chars().rev().collect();
 
+    let mut eq_siz: bool = z.len() == w.len();
+    while !eq_siz{
+        if z.len() < w.len(){
+            z.push('-');
+        } else if w.len() < z.len() {
+            w.push('-');
+        }
+        eq_siz = z.len() == w.len();
     }
     return(z,w,edit_distance);
 }
