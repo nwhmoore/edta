@@ -43,8 +43,8 @@ fn alignment(x: &String, y: &String) -> (String, String, usize) {
             }
 
             // score based on adjacent cells
-            let top: usize = mat[j][i+1] + cost;
-            let left: usize = mat[j+1][i] + cost;
+            let top: usize = mat[j][i+1] + 1;
+            let left: usize = mat[j+1][i] + 1;
             let diag: usize = mat[j][i] + cost;
             let adj_cells: [usize; 3] = [top,left,diag];
 
@@ -58,7 +58,12 @@ fn alignment(x: &String, y: &String) -> (String, String, usize) {
     }
 
     let edit_distance: usize = mat[y.len()][x.len()];
-    println!("{:?}",mat);
+
+    /*
+    for j in 0..mat.len(){ //debug, print matrix pretty
+        println!("{:?}",mat[j])
+    }
+    */
     //find aligment strings
     //start at bottom-right of matrix, find path to top left
     //need to store candidates
@@ -75,13 +80,15 @@ fn alignment(x: &String, y: &String) -> (String, String, usize) {
         let left: usize = mat[j+1][i];
         let diag: usize = mat[j][i];
 
-        if top > left && top > diag { //top best path
-            j -= 1;
-            w.push('-');
-        } else if left > top && left > diag { //left best path
-            i -= 1;
+        if top < left && top < diag { //top best path -> gap align to row letter
             z.push('-');
-        } else { //diag
+            w.push_str(&y[j..j+1]);
+            j -= 1;
+        } else if left < top && left < diag { //left best path -> align gap to column letter
+            w.push('-');
+            z.push_str(&x[i..i+1]);
+            i -= 1;
+        } else { //diag best path -> direct letters align (match or swap)
             z.push_str(&x[i..i+1]);
             w.push_str(&y[j..j+1]);
             i -= 1;
@@ -94,18 +101,9 @@ fn alignment(x: &String, y: &String) -> (String, String, usize) {
     z = z.chars().rev().collect();
     w = w.chars().rev().collect();
 
-    let mut eq_siz: bool = z.len() == w.len();
-    while !eq_siz{
-        if z.len() < w.len(){
-            z.push('-');
-        } else if w.len() < z.len() {
-            w.push('-');
-        }
-        eq_siz = z.len() == w.len();
-    }
+
     return(z,w,edit_distance);
 }
-
 
 fn make_clean_fasta_data(filepath:&str) -> Vec<String> {
     let mut data:Vec<String> = vec![String::new();0]; // final output string vector
